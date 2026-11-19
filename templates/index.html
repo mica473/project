@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Les 14 musées de la ville de Paris</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <header>
+        <h1>Les 14 musées de la ville de Paris</h1>
+        <p>Choisissez un musée à explorer !</p>
+        <nav aria-label="Navigation principale">
+            <a href="#about">À propos</a>
+            <a href="#catalogue">Catalogue des musées</a>
+            <a href="#map">Carte des musées</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="about">
+            <h2>Découvrez les 14 musées de la Ville de Paris</h2>
+            <p>Paris Musées réunit 14 musées et sites patrimoniaux, offrant des collections exceptionnelles par leur diversité. Elles permettent une traversée des périodes et des techniques : art moderne, arts décoratifs, arts d’Asie mais également mode, histoire, littérature, archéologie… Plus d’un million d’œuvres sont conservées ou exposées dans ces lieux remarquables !</p>
+        </section>
+
+        <section id="catalogue">
+            <h2>Catalogue des musées</h2>
+            <p>Explorez un aperçu des musées de Paris.</p>
+            
+            <form id="filter-form" action="{{ url_for('index') }}#catalogue" method="get">
+                <div>
+                    <label for="arrondissement">Arrondissement</label>
+                    <select id="arrondissement" name="arrondissement">
+                        <option value="">Tous les arrondissements</option>
+                        {% for arrondissement in arrondissements %}
+                        <option value="{{ arrondissement }}" {% if selected_arrondissement == arrondissement|string %}selected{% endif %}>{{ arrondissement }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="theme">Thèmes</label>
+                    <select id="theme" name="theme">
+                        <option value="">Tous les thèmes</option>
+                        {% for theme in themes %}
+                        <option value="{{ theme }}" {% if selected_themes == theme %}selected{% endif %}>
+                            {{ theme }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="pmr">Accessibilité PMR</label>
+
+                    <select id="pmr" name="pmr">
+
+                        <option value="">Toutes les accessibilités</option>
+
+                        <option value="oui"
+                            {% if selected_pmr == "oui" %}selected{% endif %}>
+                            Oui
+                        </option>
+
+                        <option value="partiel"
+                            {% if selected_pmr == "partiel" %}selected{% endif %}>
+                            Partielle
+                        </option>
+
+                        <option value="non"
+                            {% if selected_pmr == "non" %}selected{% endif %}>
+                            Non
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div>
+
+                    <label for="nocturnes">Nocturnes</label>
+
+                    <select id="nocturnes" name="nocturnes">
+
+                        <option value="">Tous</option>
+
+                        <option value="oui"
+                            {% if selected_nocturnes == "oui" %}selected{% endif %}>
+                            Oui
+                        </option>
+
+                        <option value="non"
+                            {% if selected_nocturnes == "non" %}selected{% endif %}>
+                            Non
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit">Filtrer les musées</button>
+                    <a class="reset-link" href="{{ url_for('index') }}">Effacer les filtres</a>
+                </div>
+            </form>
+            
+            <p id="status" role="status">{% if error %}{{ error }}{% else %}Affichage de {{ museums|length }} sur {{ total }} musées. {% endif %}</p>
+            <div>
+                <table>
+                    <caption>Une sélection de musées de Paris</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Nom du musée</th>
+                            <th scope="col">Arrondissement</th>
+                            <th scope="col">Thèmes</th>
+                            <th scope="col">Accessibilité PMR</th>
+                            <th scope="col">Nocturnes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for museum in museums %}
+                        <tr>
+                            <th scope="row">{{ museum.name }}</th>
+                            <td>{{ museum.arrondissement }}</td>
+                            <td>{{ museum.themes|join(", ") }}</td>
+                            <td>{{ museum.pmr }}</td>
+                            <td>{{ museum.nocturnes }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section id="method">
+            <h2>Critères de recherche des musées</h2>
+            <dl>
+                <dt>Arrondissement</dt>
+                <dd>Choisissez un musée près de chez vous.</dd>
+                <dt>Thèmes</dt>
+                <dd>Recherchez selon vos intérêts.</dd>
+                <dt>Nocturnes</dt>
+                <dd>Consultez les musées qui organisent des événements le soir.
+                    <ul>
+                        <li>Musée d'Art Moderne: le jeudi jusqu'à 21h30</li>
+                        <li>Palais Galliera: le vendredi jusqu'à 21h</li>
+                        <li>Petit Palais: le vendredi et le samedi jusqu'à 20h</li>
+                    </ul>
+                </dd>
+                <dt>Accessibilité PMR</dt>
+                <dd>Vérifiez les musées qui vous sont accessibles.
+                    <ul>
+                        <li>Oui: accessibilité totale aux PMR et personnes en fauteuil roulant.</li>
+                        <li>Partielle: accessible PMR mais partiellement aux fauteuils roulants.</li>
+                        <li>Non: Difficile d'accès PMR et impossible pour les personnes en fauteuil roulant.</li>
+                    </ul>
+                </dd>
+            </dl>
+        </section>
+        <section id="carte">
+            <h2>Carte des musées</h2>
+            <div id="map" aria-label="Carte interactive des musées de Paris"></div>
+        </section>
+        <footer>
+            <p>
+                Data sources: 
+                <a href="https://www.paris.fr/pages/paris-musees-les-musees-de-la-ville-de-paris-171">
+                    Mairie de la Ville de Paris.
+                </a>
+                <a href="https://www.parismusees.paris.fr/fr">
+                    Paris Musées.
+                </a>
+            </p>
+            <p>
+                <a href="#about">
+                    Retour en haut de page.
+                </a>
+            </p>
+        </footer>
+    </main>
+    
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Création de la carte
+    const map = L.map("map", { scrollWheelZoom: false });
+
+    // Fond de carte OpenStreetMap
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: 'Données © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Récupération des musées depuis Python
+    const museums = {{ museums_for_map | tojson }};
+
+    // Création des marqueurs
+    const markerGroup = L.featureGroup(
+        museums.map(museum =>
+            L.marker([museum.latitude, museum.longitude])
+                .bindPopup(museum.name)
+        )
+    ).addTo(map);
+
+    // Ajustement du zoom
+    if (museums.length > 0) {
+        map.fitBounds(markerGroup.getBounds().pad(0.1));
+    } else {
+        map.setView([48.8566, 2.3522], 12);
+    }
+</script>
+</body>
+</html>
