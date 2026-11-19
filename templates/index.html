@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Les 14 musées de la ville de Paris</title>
+    <title>Les 14 musées de la Ville de Paris</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
     <header>
-        <h1>Les 14 musées de la ville de Paris</h1>
+        <h1>Les 14 musées de la Ville de Paris</h1>
         <p>Choisissez un musée à explorer !</p>
         <nav aria-label="Navigation principale">
             <a href="#about">À propos</a>
@@ -176,6 +176,9 @@
                     Retour en haut de page.
                 </a>
             </p>
+            <p>
+                Site développé par Olga Magnet et Micaela Ellmann.
+            </p>
         </footer>
     </main>
     
@@ -183,7 +186,7 @@
 
 <script>
     // Création de la carte
-    const map = L.map("map", { scrollWheelZoom: false });
+    const map = L.map("map", { scrollWheelZoom: true });
 
     // Fond de carte OpenStreetMap
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
